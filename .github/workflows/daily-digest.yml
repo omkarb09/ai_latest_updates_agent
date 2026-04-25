@@ -1,1 +1,57 @@
 
+name: Daily AI Digest
+
+on:
+  schedule:
+    # Runs every day at 7:00 AM UTC (adjust to your timezone)
+    - cron: "0 7 * * *"
+
+  # Allows manual trigger from GitHub UI
+  workflow_dispatch:
+
+jobs:
+  run-digest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install anthropic
+
+      - name: Run AI Digest Agent (dry-run)
+        run: python scripts/ai_digest.py --dry-run
+
+      - name: Run AI Digest Agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # ── Email delivery (optional) ──────────────────────────────────────
+          # Set DELIVERY_MODE to "email" and fill in your SMTP credentials
+          # in GitHub repo secrets to receive results via email.
+          #
+          # DELIVERY_MODE: email
+          # SMTP_HOST: smtp.gmail.com
+          # SMTP_PORT: 587
+          # SMTP_USER: ${{ secrets.SMTP_USER }}
+          # SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          # RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+          # ──────────────────────────────────────────────────────────────────
+          DELIVERY_MODE: file
+        run: python scripts/ai_digest.py
+
+      # Commit the digest files back to the repo so you can browse history
+      - name: Commit digest files
+        run: |
+          git config --global user.name "AI Digest Bot"
+          git config --global user.email "bot@github-actions"
+          git add digests/
+          git diff --staged --quiet || git commit -m "digest: $(date +%Y-%m-%d)"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
