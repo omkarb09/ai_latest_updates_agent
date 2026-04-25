@@ -5,6 +5,7 @@ Searches research papers, company tech blogs, and AI news using Claude + web sea
 
 import os
 import json
+import ast
 import smtplib
 import sys
 import logging
@@ -198,21 +199,48 @@ Return results as JSON only."""
                     return s[start:i+1]
         return None
 
-    try:
-        digest = json.loads(raw_text)
-    except Exception:
+    # Robust JSON parsing with fallbacks for slightly malformed outputs
+    def _try_parse_json(s: str):
+        # 1) strict JSON
+        try:
+            return json.loads(s)
+        except Exception:
+            pass
+
+        # 2) try json5 (allows single quotes, trailing commas, unquoted keys)
+        try:
+            import json5
+
+            try:
+                return json5.loads(s)
+            except Exception:
+                pass
+        except Exception:
+            logging.debug("json5 not available; skip json5 fallback")
+
+        # 3) try ast.literal_eval for Python-like dicts
+        try:
+            obj = ast.literal_eval(s)
+            # ensure it becomes JSON-serializable dict/list
+            if isinstance(obj, (dict, list)):
+                return obj
+        except Exception:
+            pass
+
+        return None
+
+    digest = _try_parse_json(raw_text)
+    if digest is None:
         logging.warning("Initial JSON parse failed, attempting to extract JSON substring.")
         candidate = _extract_json_substring(raw_text)
         if candidate:
-            try:
-                digest = json.loads(candidate)
-            except Exception as e:
-                # Save raw output for debugging and re-raise
+            digest = _try_parse_json(candidate)
+            if digest is None:
                 os.makedirs("digests", exist_ok=True)
                 with open(f"digests/{today}_raw.txt", "w", encoding="utf-8") as f:
                     f.write(raw_text)
-                logging.error("JSON parse failed after extraction: %s", str(e))
-                raise
+                logging.error("JSON parse failed after extraction using strict/json5/ast fallbacks.")
+                raise ValueError("Parsed JSON invalid after fallbacks; raw saved to digests/{today}_raw.txt")
         else:
             os.makedirs("digests", exist_ok=True)
             with open(f"digests/{today}_raw.txt", "w", encoding="utf-8") as f:
