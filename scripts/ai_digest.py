@@ -242,16 +242,39 @@ Return results as JSON only."""
 
         candidate = _extract_json_substring(raw_text)
         if candidate:
+            # Attempt to clean common issues (smart quotes, trailing commas, narrow spaces)
+            def _clean_json_string(s: str) -> str:
+                # Normalize smart quotes to ASCII
+                s = s.replace('\u2018', "'").replace('\u2019', "'")
+                s = s.replace('\u201c', '"').replace('\u201d', '"')
+                s = s.replace('\u201C', '"').replace('\u201D', '"')
+                # Replace narrow no-break space and non-breaking space with regular space
+                s = s.replace('\u202f', ' ').replace('\u00a0', ' ')
+                # Normalize em/en dashes
+                s = s.replace('\u2013', '-').replace('\u2014', '-')
+                # Remove any stray control characters except common whitespace
+                s = ''.join(ch if (ch == '\n' or ch == '\t' or (32 <= ord(ch) <= 126) or ord(ch) > 127) else ' ' for ch in s)
+                # Remove trailing commas before } or ]
+                import re
+                s = re.sub(r",\s*(\}|\])", r"\1", s)
+                # Trim
+                return s.strip()
+
             # save candidate substring too for debugging
             cand_path = f"digests/{today}_candidate.txt"
             with open(cand_path, "w", encoding="utf-8") as f:
                 f.write(candidate)
             logging.info("Saved extracted JSON candidate to %s", cand_path)
-
+            # Try parsing the raw candidate first
             digest = _try_parse_json(candidate)
             if digest is None:
-                logging.error("JSON parse failed after extraction using strict/json5/ast fallbacks.")
-                raise ValueError(f"Parsed JSON invalid after fallbacks; raw saved to {raw_path}, candidate saved to {cand_path}")
+                # Try cleaning common issues and parse again
+                cleaned = _clean_json_string(candidate)
+                logging.info("Attempting parse after cleaning candidate (preview): %s", cleaned[:300].replace('\n', ' '))
+                digest = _try_parse_json(cleaned)
+                if digest is None:
+                    logging.error("JSON parse failed after extraction and cleaning using strict/json5/ast fallbacks.")
+                    raise ValueError(f"Parsed JSON invalid after fallbacks; raw saved to {raw_path}, candidate saved to {cand_path}")
         else:
             logging.error("Could not locate JSON substring in model output.")
             raise ValueError(f"No JSON found in model output; raw saved to {raw_path}")
