@@ -3,7 +3,6 @@ Daily AI Advancements Digest
 Searches research papers, company tech blogs, and AI news using Claude + web search.
 """
 
-import anthropic
 import os
 import json
 import smtplib
@@ -71,25 +70,19 @@ Include 8-12 highlights. Prioritize quality over quantity. Be concise but inform
 # ── Core Agent ────────────────────────────────────────────────────────────────
 
 def run_digest_agent() -> dict:
-    # Prefer GROQ_API_KEY (user switched to Groq); fall back to ANTHROPIC_API_KEY
-    api_key = os.environ.get("GROQ_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
+    # Use GROQ exclusively
+    api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
-        logging.error("Missing GROQ_API_KEY or ANTHROPIC_API_KEY env var. Set one and retry.")
+        logging.error("Missing GROQ_API_KEY env var. Set it and retry.")
         sys.exit(1)
 
-    # Select client based on available key. Try to use Groq SDK when GROQ_API_KEY is present.
-    provider = "groq" if os.environ.get("GROQ_API_KEY") else "anthropic"
-    client = None
-    if provider == "anthropic":
-        client = anthropic.Anthropic(api_key=api_key)
-    else:
-        try:
-            import groq
-            client = groq.Client(api_key=api_key)
-            logging.info("Using Groq client for API calls.")
-        except Exception:
-            logging.warning("Groq SDK not available; falling back to Anthropic client interface if possible.")
-            client = anthropic.Anthropic(api_key=api_key)
+    try:
+        import groq
+    except Exception:
+        logging.error("Groq SDK is not installed. Run 'pip install groq' and try again.")
+        raise
+
+    client = groq.Client(api_key=api_key)
     today = date.today().isoformat()
 
     search_targets = "\n".join(f"- {s}" for s in SOURCES)
@@ -110,48 +103,27 @@ Make sure to specifically check:
 Return results as JSON only."""
 
     logging.info("%s Running AI digest agent...", today)
-
-    # Call the Anthropic API with basic retry/backoff
+    # Prepare model selection and attempt calls with retry/backoff
     max_attempts = 3
     backoff = 1
-    response = None
+    response_text = None
     last_exc = None
-    for attempt in range(1, max_attempts + 1):
-        try:
-            response = client.messages.create(
-                model="openai/gpt-oss-120b",
-                max_tokens=4000,
-                tools=[{"type": "web_search_20250305", "name": "web_search"}],
-                system=SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": user_prompt}],
-            )
-            break
-        except Exception as e:
-            last_exc = e
-            logging.warning("API attempt %s failed: %s", attempt, str(e))
-            if attempt < max_attempts:
-                time.sleep(backoff)
-                backoff *= 2
 
-    if response is None:
-        logging.error("Failed to call Anthropic API after %s attempts: %s", max_attempts, last_exc)
-        raise last_exc
+    # Determine model name (allow override via env)
+    model_name = os.environ.get("MODEL_NAME") or "openai/gpt-oss-120b"
 
-    # Extract text safely from the response object
+    # helper extractor for Anthropic-style responses
     def _extract_text(resp) -> str:
-        # Try known response shapes
         try:
             raw = ""
             if hasattr(resp, "content"):
                 for block in resp.content:
-                    # defensive attribute access
                     t = getattr(block, "type", None)
                     if t == "text":
                         raw += getattr(block, "text", "")
             elif hasattr(resp, "text"):
                 raw = resp.text
             elif isinstance(resp, dict):
-                # try common keys
                 for k in ("content", "text", "completion", "output"):
                     if k in resp and isinstance(resp[k], str):
                         raw += resp[k]
@@ -162,7 +134,42 @@ Return results as JSON only."""
             logging.debug("Exception extracting text: %s", traceback.format_exc())
             return str(resp)
 
-    raw_text = _extract_text(response).strip()
+    for attempt in range(1, max_attempts + 1):
+        try:
+            # Groq-only invocation
+            try:
+                if hasattr(client, "chat") and hasattr(client.chat, "completions"):
+                    resp = client.chat.completions.create(
+                        model=model_name,
+                        messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user_prompt}],
+                        max_tokens=4000,
+                    )
+                    response_text = _extract_text(resp)
+                elif hasattr(client, "generate"):
+                    prompt = SYSTEM_PROMPT + "\n" + user_prompt
+                    resp = client.generate(model=model_name, prompt=prompt, max_tokens=4000)
+                    response_text = _extract_text(resp)
+                else:
+                    raise RuntimeError("Groq client does not expose supported methods; please install/update the groq SDK.")
+            except Exception:
+                raise
+
+            # success; break retry loop
+            if response_text is not None:
+                break
+
+        except Exception as e:
+            last_exc = e
+            logging.warning("API attempt %s failed: %s", attempt, str(e))
+            if attempt < max_attempts:
+                time.sleep(backoff)
+                backoff *= 2
+
+    if response_text is None:
+        logging.error("Failed to call provider API after %s attempts: %s", max_attempts, last_exc)
+        raise last_exc
+
+    raw_text = str(response_text).strip()
 
     # Remove triple-backtick fences if present
     if raw_text.startswith("```"):

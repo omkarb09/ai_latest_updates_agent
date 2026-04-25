@@ -32,7 +32,9 @@ Go to your repo → **Settings → Secrets and variables → Actions → New rep
 
 | Secret Name | Value |
 |---|---|
-| `GROQ_API_KEY` | Your Groq API key (or set `ANTHROPIC_API_KEY` for Anthropic as a fallback) |
+| `GROQ_API_KEY` | Your Groq API key (required)
+
+Notes: this project now uses the Groq SDK exclusively. Set `GROQ_API_KEY` in your repository secrets. You can also set `MODEL_NAME` to override the default model identifier.
 
 ### 3. Enable GitHub Actions
 
