@@ -71,13 +71,13 @@ Include 8-12 highlights. Prioritize quality over quantity. Be concise but inform
 # ── Core Agent ────────────────────────────────────────────────────────────────
 
 def run_digest_agent() -> dict:
-  api_key = os.environ.get("ANTHROPIC_API_KEY")
-  if not api_key:
-    logging.error("Missing ANTHROPIC_API_KEY env var. Set it and retry.")
-    sys.exit(1)
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        logging.error("Missing ANTHROPIC_API_KEY env var. Set it and retry.")
+        sys.exit(1)
 
-  client = anthropic.Anthropic(api_key=api_key)
-  today = date.today().isoformat()
+    client = anthropic.Anthropic(api_key=api_key)
+    today = date.today().isoformat()
 
     search_targets = "\n".join(f"- {s}" for s in SOURCES)
 
@@ -104,105 +104,105 @@ Return results as JSON only."""
     response = None
     last_exc = None
     for attempt in range(1, max_attempts + 1):
-      try:
-        response = client.messages.create(
-          model="claude-sonnet-4-20250514",
-          max_tokens=4000,
-          tools=[{"type": "web_search_20250305", "name": "web_search"}],
-          system=SYSTEM_PROMPT,
-          messages=[{"role": "user", "content": user_prompt}],
-        )
-        break
-      except Exception as e:
-        last_exc = e
-        logging.warning("API attempt %s failed: %s", attempt, str(e))
-        if attempt < max_attempts:
-          time.sleep(backoff)
-          backoff *= 2
+        try:
+            response = client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=4000,
+                tools=[{"type": "web_search_20250305", "name": "web_search"}],
+                system=SYSTEM_PROMPT,
+                messages=[{"role": "user", "content": user_prompt}],
+            )
+            break
+        except Exception as e:
+            last_exc = e
+            logging.warning("API attempt %s failed: %s", attempt, str(e))
+            if attempt < max_attempts:
+                time.sleep(backoff)
+                backoff *= 2
 
     if response is None:
-      logging.error("Failed to call Anthropic API after %s attempts: %s", max_attempts, last_exc)
-      raise last_exc
+        logging.error("Failed to call Anthropic API after %s attempts: %s", max_attempts, last_exc)
+        raise last_exc
 
     # Extract text safely from the response object
     def _extract_text(resp) -> str:
-      # Try known response shapes
-      try:
-        raw = ""
-        if hasattr(resp, "content"):
-          for block in resp.content:
-            # defensive attribute access
-            t = getattr(block, "type", None)
-            if t == "text":
-              raw += getattr(block, "text", "")
-        elif hasattr(resp, "text"):
-          raw = resp.text
-        elif isinstance(resp, dict):
-          # try common keys
-          for k in ("content", "text", "completion", "output"):
-            if k in resp and isinstance(resp[k], str):
-              raw += resp[k]
-        else:
-          raw = str(resp)
-        return raw
-      except Exception:
-        logging.debug("Exception extracting text: %s", traceback.format_exc())
-        return str(resp)
+        # Try known response shapes
+        try:
+            raw = ""
+            if hasattr(resp, "content"):
+                for block in resp.content:
+                    # defensive attribute access
+                    t = getattr(block, "type", None)
+                    if t == "text":
+                        raw += getattr(block, "text", "")
+            elif hasattr(resp, "text"):
+                raw = resp.text
+            elif isinstance(resp, dict):
+                # try common keys
+                for k in ("content", "text", "completion", "output"):
+                    if k in resp and isinstance(resp[k], str):
+                        raw += resp[k]
+            else:
+                raw = str(resp)
+            return raw
+        except Exception:
+            logging.debug("Exception extracting text: %s", traceback.format_exc())
+            return str(resp)
 
     raw_text = _extract_text(response).strip()
 
     # Remove triple-backtick fences if present
     if raw_text.startswith("```"):
-      parts = raw_text.split("```")
-      # find the first fenced block that looks like JSON
-      if len(parts) >= 2:
-        candidate = parts[1]
-        if candidate.strip().startswith("json"):
-          candidate = candidate.strip()[4:]
-        raw_text = candidate
+        parts = raw_text.split("```")
+        # find the first fenced block that looks like JSON
+        if len(parts) >= 2:
+            candidate = parts[1]
+            if candidate.strip().startswith("json"):
+                candidate = candidate.strip()[4:]
+            raw_text = candidate
 
     raw_text = raw_text.strip()
 
     # Try to parse JSON robustly; if it fails, attempt to extract a balanced JSON object
     def _extract_json_substring(s: str) -> str | None:
-      start = s.find("{")
-      if start == -1:
+        start = s.find("{")
+        if start == -1:
+            return None
+        depth = 0
+        for i in range(start, len(s)):
+            if s[i] == "{":
+                depth += 1
+            elif s[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    return s[start:i+1]
         return None
-      depth = 0
-      for i in range(start, len(s)):
-        if s[i] == "{":
-          depth += 1
-        elif s[i] == "}":
-          depth -= 1
-          if depth == 0:
-            return s[start:i+1]
-      return None
 
     try:
-      digest = json.loads(raw_text)
+        digest = json.loads(raw_text)
     except Exception:
-      logging.warning("Initial JSON parse failed, attempting to extract JSON substring.")
-      candidate = _extract_json_substring(raw_text)
-      if candidate:
-        try:
-          digest = json.loads(candidate)
-        except Exception as e:
-          # Save raw output for debugging and re-raise
-          os.makedirs("digests", exist_ok=True)
-          with open(f"digests/{today}_raw.txt", "w", encoding="utf-8") as f:
-            f.write(raw_text)
-          logging.error("JSON parse failed after extraction: %s", str(e))
-          raise
-      else:
-        os.makedirs("digests", exist_ok=True)
-        with open(f"digests/{today}_raw.txt", "w", encoding="utf-8") as f:
-          f.write(raw_text)
-        logging.error("Could not locate JSON substring in model output.")
-        raise ValueError("No JSON found in model output; raw saved to digests/{today}_raw.txt")
+        logging.warning("Initial JSON parse failed, attempting to extract JSON substring.")
+        candidate = _extract_json_substring(raw_text)
+        if candidate:
+            try:
+                digest = json.loads(candidate)
+            except Exception as e:
+                # Save raw output for debugging and re-raise
+                os.makedirs("digests", exist_ok=True)
+                with open(f"digests/{today}_raw.txt", "w", encoding="utf-8") as f:
+                    f.write(raw_text)
+                logging.error("JSON parse failed after extraction: %s", str(e))
+                raise
+        else:
+            os.makedirs("digests", exist_ok=True)
+            with open(f"digests/{today}_raw.txt", "w", encoding="utf-8") as f:
+                f.write(raw_text)
+            logging.error("Could not locate JSON substring in model output.")
+            raise ValueError("No JSON found in model output; raw saved to digests/{today}_raw.txt")
 
     # Ensure schema defaults
     if not isinstance(digest, dict):
-      raise ValueError("Parsed digest is not a JSON object")
+        raise ValueError("Parsed digest is not a JSON object")
 
     digest.setdefault("highlights", [])
     logging.info("%s Agent returned %d highlights.", today, len(digest.get('highlights', [])))
@@ -225,20 +225,20 @@ def to_html(digest: dict) -> str:
 
     rows = ""
     for h in highlights:
-      cat = h.get("category", "Other")
-      color = category_colors.get(cat, "#6b7280")
-      title = h.get("title", "Untitled")
-      url = h.get("url")
-      source = h.get("source", "")
-      insight = h.get("insight", "")
+        cat = h.get("category", "Other")
+        color = category_colors.get(cat, "#6b7280")
+        title = h.get("title", "Untitled")
+        url = h.get("url")
+        source = h.get("source", "")
+        insight = h.get("insight", "")
 
-      # Escape model-provided content for safe HTML embedding
-      esc_title = html_lib.escape(str(title))
-      esc_source = html_lib.escape(str(source))
-      esc_insight = html_lib.escape(str(insight))
-      esc_url = html_lib.escape(str(url), quote=True) if url else None
+        # Escape model-provided content for safe HTML embedding
+        esc_title = html_lib.escape(str(title))
+        esc_source = html_lib.escape(str(source))
+        esc_insight = html_lib.escape(str(insight))
+        esc_url = html_lib.escape(str(url), quote=True) if url else None
 
-      title_html = f'<a href="{esc_url}" style="color:#1d4ed8;text-decoration:none;">{esc_title}</a>' if esc_url else esc_title
+        title_html = f'<a href="{esc_url}" style="color:#1d4ed8;text-decoration:none;">{esc_title}</a>' if esc_url else esc_title
 
         rows += f"""
         <tr>
