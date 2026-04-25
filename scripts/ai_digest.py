@@ -232,21 +232,29 @@ Return results as JSON only."""
     digest = _try_parse_json(raw_text)
     if digest is None:
         logging.warning("Initial JSON parse failed, attempting to extract JSON substring.")
+        # Save the raw output for inspection and log a preview
+        os.makedirs("digests", exist_ok=True)
+        raw_path = f"digests/{today}_raw.txt"
+        with open(raw_path, "w", encoding="utf-8") as f:
+            f.write(raw_text)
+        logging.info("Saved raw model output to %s", raw_path)
+        logging.info("Model output preview: %s", raw_text[:800].replace("\n", " "))
+
         candidate = _extract_json_substring(raw_text)
         if candidate:
+            # save candidate substring too for debugging
+            cand_path = f"digests/{today}_candidate.txt"
+            with open(cand_path, "w", encoding="utf-8") as f:
+                f.write(candidate)
+            logging.info("Saved extracted JSON candidate to %s", cand_path)
+
             digest = _try_parse_json(candidate)
             if digest is None:
-                os.makedirs("digests", exist_ok=True)
-                with open(f"digests/{today}_raw.txt", "w", encoding="utf-8") as f:
-                    f.write(raw_text)
                 logging.error("JSON parse failed after extraction using strict/json5/ast fallbacks.")
-                raise ValueError("Parsed JSON invalid after fallbacks; raw saved to digests/{today}_raw.txt")
+                raise ValueError(f"Parsed JSON invalid after fallbacks; raw saved to {raw_path}, candidate saved to {cand_path}")
         else:
-            os.makedirs("digests", exist_ok=True)
-            with open(f"digests/{today}_raw.txt", "w", encoding="utf-8") as f:
-                f.write(raw_text)
             logging.error("Could not locate JSON substring in model output.")
-            raise ValueError("No JSON found in model output; raw saved to digests/{today}_raw.txt")
+            raise ValueError(f"No JSON found in model output; raw saved to {raw_path}")
 
     # Ensure schema defaults
     if not isinstance(digest, dict):
