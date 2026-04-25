@@ -71,12 +71,25 @@ Include 8-12 highlights. Prioritize quality over quantity. Be concise but inform
 # ── Core Agent ────────────────────────────────────────────────────────────────
 
 def run_digest_agent() -> dict:
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    # Prefer GROQ_API_KEY (user switched to Groq); fall back to ANTHROPIC_API_KEY
+    api_key = os.environ.get("GROQ_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        logging.error("Missing ANTHROPIC_API_KEY env var. Set it and retry.")
+        logging.error("Missing GROQ_API_KEY or ANTHROPIC_API_KEY env var. Set one and retry.")
         sys.exit(1)
 
-    client = anthropic.Anthropic(api_key=api_key)
+    # Select client based on available key. Try to use Groq SDK when GROQ_API_KEY is present.
+    provider = "groq" if os.environ.get("GROQ_API_KEY") else "anthropic"
+    client = None
+    if provider == "anthropic":
+        client = anthropic.Anthropic(api_key=api_key)
+    else:
+        try:
+            import groq
+            client = groq.Client(api_key=api_key)
+            logging.info("Using Groq client for API calls.")
+        except Exception:
+            logging.warning("Groq SDK not available; falling back to Anthropic client interface if possible.")
+            client = anthropic.Anthropic(api_key=api_key)
     today = date.today().isoformat()
 
     search_targets = "\n".join(f"- {s}" for s in SOURCES)
@@ -106,7 +119,7 @@ Return results as JSON only."""
     for attempt in range(1, max_attempts + 1):
         try:
             response = client.messages.create(
-                model="claude-sonnet-4-20250514",
+                model="openai/gpt-oss-120b",
                 max_tokens=4000,
                 tools=[{"type": "web_search_20250305", "name": "web_search"}],
                 system=SYSTEM_PROMPT,
@@ -327,20 +340,20 @@ def to_markdown(digest: dict) -> str:
     return "\n".join(lines)
 
 
-  def generate_sample_digest() -> dict:
+def generate_sample_digest() -> dict:
     today = date.today().isoformat()
     sample = {
-      "date": today,
-      "summary": "Sample digest for CI dry-run: no API calls were made.",
-      "highlights": [
-        {
-          "category": "Industry News",
-          "source": "Example Blog",
-          "title": "Sample AI release for dry-run",
-          "url": None,
-          "insight": "This is a synthetic entry used for CI validation and formatting checks."
-        }
-      ]
+        "date": today,
+        "summary": "Sample digest for CI dry-run: no API calls were made.",
+        "highlights": [
+            {
+                "category": "Industry News",
+                "source": "Example Blog",
+                "title": "Sample AI release for dry-run",
+                "url": None,
+                "insight": "This is a synthetic entry used for CI validation and formatting checks."
+            }
+        ]
     }
     return sample
 
@@ -350,13 +363,13 @@ def to_markdown(digest: dict) -> str:
 def send_email(digest: dict):
     smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.environ.get("SMTP_PORT", "587"))
-  smtp_user = os.environ.get("SMTP_USER")
-  smtp_pass = os.environ.get("SMTP_PASS")
+    smtp_user = os.environ.get("SMTP_USER")
+    smtp_pass = os.environ.get("SMTP_PASS")
     recipient = os.environ.get("RECIPIENT_EMAIL", smtp_user)
 
-  if not smtp_user or not smtp_pass:
-    logging.error("SMTP_USER and SMTP_PASS must be set for email delivery.")
-    raise EnvironmentError("Missing SMTP credentials")
+    if not smtp_user or not smtp_pass:
+        logging.error("SMTP_USER and SMTP_PASS must be set for email delivery.")
+        raise EnvironmentError("Missing SMTP credentials")
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = f"🤖 AI Digest — {digest.get('date', date.today())}"
@@ -367,56 +380,56 @@ def send_email(digest: dict):
     msg.attach(MIMEText(to_html(digest), "html"))
 
     try:
-      with smtplib.SMTP(smtp_host, smtp_port) as server:
-        server.starttls()
-        server.login(smtp_user, smtp_pass)
-        server.sendmail(smtp_user, recipient, msg.as_string())
-      logging.info("Email sent to %s", recipient)
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_user, recipient, msg.as_string())
+        logging.info("Email sent to %s", recipient)
     except Exception as e:
-      logging.error("Failed to send email: %s", str(e))
-      raise
+        logging.error("Failed to send email: %s", str(e))
+        raise
 
 
 def save_to_file(digest: dict):
     today = digest.get("date", date.today().isoformat())
-  try:
-    os.makedirs("digests", exist_ok=True)
+    try:
+        os.makedirs("digests", exist_ok=True)
 
-    # Save JSON
-    with open(f"digests/{today}.json", "w", encoding="utf-8") as f:
-      json.dump(digest, f, indent=2)
+        # Save JSON
+        with open(f"digests/{today}.json", "w", encoding="utf-8") as f:
+            json.dump(digest, f, indent=2)
 
-    # Save Markdown
-    with open(f"digests/{today}.md", "w", encoding="utf-8") as f:
-      f.write(to_markdown(digest))
+        # Save Markdown
+        with open(f"digests/{today}.md", "w", encoding="utf-8") as f:
+            f.write(to_markdown(digest))
 
-    logging.info("Digest saved to digests/%s.json and digests/%s.md", today, today)
-  except Exception as e:
-    logging.error("Failed to save digest to file: %s", str(e))
-    raise
+        logging.info("Digest saved to digests/%s.json and digests/%s.md", today, today)
+    except Exception as e:
+        logging.error("Failed to save digest to file: %s", str(e))
+        raise
 
 
 # ── Entry Point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description="AI Digest runner")
-  parser.add_argument("--dry-run", action="store_true", help="Run without calling external APIs (CI friendly)")
-  args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="AI Digest runner")
+    parser.add_argument("--dry-run", action="store_true", help="Run without calling external APIs (CI friendly)")
+    args = parser.parse_args()
 
-  try:
-    if args.dry_run or os.environ.get("DRY_RUN"):
-      logging.info("Running in dry-run mode; generating sample digest.")
-      digest = generate_sample_digest()
-    else:
-      digest = run_digest_agent()
+    try:
+        if args.dry_run or os.environ.get("DRY_RUN"):
+            logging.info("Running in dry-run mode; generating sample digest.")
+            digest = generate_sample_digest()
+        else:
+            digest = run_digest_agent()
 
-    delivery = os.environ.get("DELIVERY_MODE", "file")  # "email" or "file"
+        delivery = os.environ.get("DELIVERY_MODE", "file")  # "email" or "file"
 
-    if delivery == "email":
-      send_email(digest)
-    else:
-      save_to_file(digest)
-      print("\n" + to_markdown(digest))
-  except Exception as e:
-    logging.exception("Digest run failed: %s", str(e))
-    sys.exit(1)
+        if delivery == "email":
+            send_email(digest)
+        else:
+            save_to_file(digest)
+            print("\n" + to_markdown(digest))
+    except Exception as e:
+        logging.exception("Digest run failed: %s", str(e))
+        sys.exit(1)

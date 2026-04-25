@@ -32,7 +32,7 @@ Go to your repo → **Settings → Secrets and variables → Actions → New rep
 
 | Secret Name | Value |
 |---|---|
-| `ANTHROPIC_API_KEY` | Your key from [console.anthropic.com](https://console.anthropic.com) |
+| `GROQ_API_KEY` | Your Groq API key (or set `ANTHROPIC_API_KEY` for Anthropic as a fallback) |
 
 ### 3. Enable GitHub Actions
 

@@ -30,7 +30,7 @@ jobs:
 
       - name: Run AI Digest Agent
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           # ── Email delivery (optional) ──────────────────────────────────────
           # Set DELIVERY_MODE to "email" and fill in your SMTP credentials
           # in GitHub repo secrets to receive results via email.
