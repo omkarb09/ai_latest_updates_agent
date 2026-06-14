@@ -1,0 +1,90 @@
+{
+  "date": "2026-06-14",
+  "summary": "Today's AI digest highlights the latest advancements in machine learning, including new models and research papers from top universities and labs, as well as significant industry announcements and product launches. Notable developments include OpenAI's focus on practical AI, Meta's AI roadmap for 2026, and Uber's rapid adoption of AI coding tools. Researchers at Stanford and MIT are also making significant predictions and breakthroughs in the field.",
+  "highlights": [
+    {
+      "category": "Research Paper",
+      "source": "arXiv",
+      "title": "On the evolution of the concept of machine learning",
+      "url": "https://arxiv.org/list/cs.AI/current",
+      "insight": "A new research paper on arXiv explores the evolution of machine learning concepts, highlighting the latest developments and advancements in the field. This paper is a significant contribution to the understanding of machine learning and its applications."
+    },
+    {
+      "category": "Company Blog",
+      "source": "Netflix TechBlog",
+      "title": "Netflix Machine Learning Engineer Interview Questions 2026",
+      "url": "https://dataford.io/interview-guides/netflix/machine-learning-engineer",
+      "insight": "Netflix has released a guide for machine learning engineer interview questions, providing insight into the skills and knowledge required for the role. This resource is valuable for those looking to pursue a career in machine learning at Netflix."
+    },
+    {
+      "category": "Model Release",
+      "source": "Hugging Face",
+      "title": "Hugging Face new models, May 2026",
+      "url": "https://fazm.ai/t/hugging-face-new-models-announcements-may-2026",
+      "insight": "Hugging Face has released new models in May 2026, expanding its range of AI capabilities and tools. These models have the potential to drive significant advancements in natural language processing and other areas of AI research."
+    },
+    {
+      "category": "Industry News",
+      "source": "OpenAI",
+      "title": "OpenAI\u2019s 2026 focus on practical AI points to enterprise",
+      "url": "https://www.constellationr.com/insights/news/openais-2026-focus-practical-ai-points-enterprise",
+      "insight": "OpenAI has announced its focus on practical AI for 2026, with a emphasis on enterprise applications and real-world use cases. This shift is expected to drive significant adoption and innovation in the industry."
+    },
+    {
+      "category": "Research Paper",
+      "source": "Anthropic",
+      "title": "2026 Agentic Coding Trends Report",
+      "url": "https://resources.anthropic.com/hubfs/2026%20Agentic%20Coding%20Trends%20Report.pdf",
+      "insight": "Anthropic has released a report on agentic coding trends for 2026, highlighting the growing importance of AI in software development and the need for more robust and reliable coding tools."
+    },
+    {
+      "category": "Company Blog",
+      "source": "DoorDash Engineering",
+      "title": "Building DoorDash Assistant: An engineering overview",
+      "url": "https://careersatdoordash.com/blog/category/engineering/data-science-and-machine-learning",
+      "insight": "DoorDash has released a blog post on the engineering behind its Assistant feature, providing insight into the company's approach to AI and machine learning. This post highlights the importance of AI in driving business outcomes and customer experience."
+    },
+    {
+      "category": "Industry News",
+      "source": "Meta AI",
+      "title": "Meta's AI Roadmap for 2026: Empowering Personal Superintelligence",
+      "url": "https://www.linkedin.com/posts/mediabriefdotcom_mediabrief-markzuckerberg-meta-activity-7422921619141967872--z6N",
+      "insight": "Meta has announced its AI roadmap for 2026, with a focus on empowering personal superintelligence and driving innovation in the field. This roadmap is expected to have significant implications for the industry and the future of AI research."
+    },
+    {
+      "category": "Research Paper",
+      "source": "Stanford University",
+      "title": "Annual AI Index 2026",
+      "url": "https://lightcast.io/resources/research/stanford-ai-index-2026",
+      "insight": "Stanford University has released its annual AI Index report for 2026, providing a comprehensive overview of the state of AI research and adoption. This report highlights the growing importance of AI in driving business outcomes and societal impact."
+    },
+    {
+      "category": "Company Blog",
+      "source": "Uber Engineering",
+      "title": "Uber burned its entire 2026 AI coding budget in 4 months",
+      "url": "https://www.instagram.com/p/DY9emvvERCq",
+      "insight": "Uber has reportedly exhausted its entire 2026 AI coding budget in just 4 months, highlighting the rapid adoption of AI tools across the company's engineering teams. This development underscores the growing importance of AI in driving business outcomes and innovation."
+    },
+    {
+      "category": "Research Paper",
+      "source": "MIT",
+      "title": "MIT Researchers Bring Big Ideas to Google Cambridge",
+      "url": "https://www.media.mit.edu/posts/mit-media-lab-mit-csail-researchers-present-at-google-cambridge",
+      "insight": "MIT researchers have presented their work on AI and human-centered computing at Google's Cambridge office, highlighting the growing collaboration between academia and industry in the field. This development underscores the importance of interdisciplinary research and innovation in driving AI advancements."
+    },
+    {
+      "category": "Industry News",
+      "source": "DeepMind",
+      "title": "2026 will be the year of continual learning",
+      "url": "https://www.reddit.com/r/Bard/comments/1q13yz1/deepmind_researcher_2026_will_be_the_year_of",
+      "insight": "DeepMind has announced that 2026 will be the year of continual learning, highlighting the growing importance of AI in driving business outcomes and innovation. This development underscores the need for more robust and reliable AI systems that can learn and adapt over time."
+    },
+    {
+      "category": "Company Blog",
+      "source": "Carnegie Mellon University",
+      "title": "Carnegie Mellon Launches New Effort to Advance AI-Driven Astronomy",
+      "url": "https://www.hpcwire.com/aiwire/2026/04/06/carnegie-mellon-launches-new-effort-to-advance-ai-driven-astronomy",
+      "insight": "Carnegie Mellon University has launched a new initiative to advance AI-driven astronomy, highlighting the growing importance of AI in driving scientific discovery and innovation. This development underscores the potential for AI to drive significant breakthroughs in various fields of research."
+    }
+  ]
+}
