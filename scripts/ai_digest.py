@@ -122,7 +122,7 @@ def run_digest_agent() -> dict:
 
     client = groq.Client(api_key=api_key)
     today = date.today().isoformat()
-    model_name = os.environ.get("MODEL_NAME", "gpt-oss-120b")
+    model_name = os.environ.get("MODEL_NAME", "openai/gpt-oss-120b")
 
     # Step 1: Fetch real web search results via Tavily
     logging.info("%s Fetching web search results via Tavily...", today)
