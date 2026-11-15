@@ -1,0 +1,76 @@
+{
+  "date": "2026-11-15",
+  "summary": "Today\u2019s AI landscape is marked by fresh breakthroughs in efficient mixture-of-experts inference, new causal explanation methods, and ambitious deployments of foundation models in personalization. Companies also announced major infrastructure initiatives and specialized model releases targeting security and accessibility.",
+  "highlights": [
+    {
+      "category": "Research Paper",
+      "source": "arXiv",
+      "title": "RankLane: Efficient MoE Prefill on Accelerators with Ranked Expert Capacities",
+      "url": "https://arxiv.org/list/cs.LG/current",
+      "insight": "The paper introduces a ranking mechanism for expert selection in mixture\u2011of\u2011experts models, cutting prefill latency on modern accelerators and making large MoE models more practical for production workloads."
+    },
+    {
+      "category": "Research Paper",
+      "source": "arXiv",
+      "title": "A Spectral Renormalization-Group View of Learning",
+      "url": "https://arxiv.org/list/cs.LG/current",
+      "insight": "By framing learning dynamics through a spectral renormalization\u2011group lens, the authors provide a unified theory that links optimization trajectories with model capacity, offering new analytical tools for understanding deep network training."
+    },
+    {
+      "category": "Research Paper",
+      "source": "arXiv",
+      "title": "Causal Concept Explanations for Deep Neural Models",
+      "url": "https://arxiv.org/abs/2611.14407",
+      "insight": "Accepted at NeurIPS 2026, this work proposes a causal framework to generate human\u2011interpretable concept explanations, improving transparency for high\u2011stakes applications such as healthcare and finance."
+    },
+    {
+      "category": "Research Paper",
+      "source": "arXiv",
+      "title": "AgentSSL: Can MLE Agents Leverage Unlabeled Data?",
+      "url": "https://arxiv.org/abs/2611.17323",
+      "insight": "The authors demonstrate that maximum\u2011likelihood agents can achieve substantial performance gains by self\u2011training on unlabeled trajectories, opening a path to cheaper reinforcement\u2011learning pipelines."
+    },
+    {
+      "category": "Company Blog",
+      "source": "Netflix Research",
+      "title": "Integrating Netflix\u2019s Foundation Model into Personalization Applications",
+      "url": "https://research.netflix.com/archive",
+      "insight": "Netflix details how its in\u2011house foundation model is fine\u2011tuned for homepage layout, search relevance, and artwork personalization, showcasing a large\u2011scale deployment of LLMs in a consumer\u2011facing product."
+    },
+    {
+      "category": "Company Blog",
+      "source": "DoorDash Engineering",
+      "title": "How DoorDash Reduced LLM Search Costs by 98% Without Losing Accuracy",
+      "url": "https://careersatdoordash.com/engineering-blog",
+      "insight": "Through a combination of quantization, caching, and a custom SquashFS distribution layer, DoorDash cut inference spend dramatically, setting a benchmark for cost\u2011effective GenAI services in logistics."
+    },
+    {
+      "category": "Industry News",
+      "source": "Google DeepMind",
+      "title": "DeepMind Expands UK Science Push with New Automated AI Research Lab",
+      "url": "https://cryptorank.io/news/feed/32c53-google-deepmind-expands-uk-science-push-with-new-ai-research-lab",
+      "insight": "The new lab leverages robotics and self\u2011optimizing pipelines to accelerate materials\u2011science experiments, signaling DeepMind\u2019s move toward fully autonomous AI\u2011driven research infrastructure."
+    },
+    {
+      "category": "Industry News",
+      "source": "Hugging Face",
+      "title": "State of Open Models: Summer 2026 Observations \u2013 Qwen Becomes Community Base Model",
+      "url": "https://huggingface.co/blog/state-of-open-models-summer-2026",
+      "insight": "Hugging Face reports that Qwen\u2019s open\u2011source ecosystem has become the de\u2011facto foundation for downstream fine\u2011tuning, highlighting a shift toward community\u2011driven large\u2011model development."
+    },
+    {
+      "category": "Model Release",
+      "source": "OpenAI",
+      "title": "GPT\u20116 Cyber: Aligned Cybersecurity Agent",
+      "url": "https://openai.com/research",
+      "insight": "GPT\u20116 Cyber is a specialized variant of the GPT\u20116 family trained on threat\u2011intelligence data, delivering real\u2011time vulnerability assessment and mitigation suggestions while adhering to OpenAI\u2019s safety guardrails."
+    },
+    {
+      "category": "Company Blog",
+      "source": "Meta AI",
+      "title": "Brain2Qwerty Offers a New Path to Communication Without Surgery",
+      "url": null,
+      "insight": "Meta\u2019s Brain2Qwerty translates neural signals directly into typed text, eliminating invasive procedures for users with motor impairments and opening new avenues for brain\u2011computer interfacing."
+    }
+  ]
+}
